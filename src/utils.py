@@ -40,12 +40,7 @@ def link_file_to_comfyui(source_path, target_path):
                 print(f"链接创建失败 {dst_file}: {e}")
 
 def run_comfyui(port, args):
-    cmd = [
-        "comfy", "launch",
-        "--",
-        "--listen", "0.0.0.0",
-        "--port", str(port)
-    ] + args
+    cmd = f"comfy launch -- --listen 0.0.0.0 --port {str(port)} {' '.join(args)}"
     
-    print(f"启动ComfyUI: {' '.join(cmd)}")
-    subprocess.Popen(cmd)
+    print(f"启动ComfyUI: {cmd}")
+    subprocess.Popen(cmd, shell=True)
