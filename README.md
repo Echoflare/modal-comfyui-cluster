@@ -21,7 +21,7 @@
 
 ### 1. `app.json` (应用资源)
 控制容器环境 (GPU 类型、并发数和超时时间等)。
-```json
+```json5
 {
   "app_name": "comfyui-cluster", // ComfyUI集群应用命名
   "file_volume_name": "comfyui-files", // 大文件存放媒介命名 (例如: 模型)
@@ -40,7 +40,7 @@
 
 ### 2. `comfyui.json` (ComfyUI相关)
 控制ComfyUI安装路径、启动参数等。
-```json
+```json5
 {
   "install_path": "/root/comfy/ComfyUI", // ComfyUI安装路径
   "install_args": [], // ComfyUI安装参数 (例如: --skip-prompt)
@@ -53,7 +53,7 @@
 
 ### 3. `files.json` (文件下载)
 用于下载文件，分为公有、私有下载 (HuggingFace)。
-```json
+```json5
 {
   "public_files": { // 公有下载 (使用aria2工具)
     "ComfyUI内部相对路径1": [
@@ -86,7 +86,7 @@
 }
 ```
 示例:
-```json
+```json5
 {
   "public_files": {
     "models/checkpoints": [
@@ -119,7 +119,7 @@
 }
 ```
 现成配置文件 (NewBie-image-Exp0.1):
-```json
+```json5
 {
   "public_files": {
     "models/diffusion_models": [
@@ -151,7 +151,7 @@
 
 ### 4. `repositories.json` (仓库克隆)
 用于克隆Git仓库。
-```json
+```json5
 {
   "ComfyUI内部相对路径1": [
     "需要克隆的仓库地址1", // 可携带Git参数
@@ -161,7 +161,7 @@
 }
 ```
 示例:
-```
+```json5
 {
   "custom_nodes": [
     "https://github.com/audioscavenger/save-image-extended-comfyui"
@@ -171,7 +171,7 @@
 
 ### 5. `tokens.json` (敏感信息)
 配置您的 HuggingFace Token，用于下载私有模型 (如果有下载私有模型的需求)。
-```json
+```json5
 {
   "huggingface_token": ""
 }
