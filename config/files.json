@@ -1,0 +1,24 @@
+{
+  "public_files": {
+    "models/checkpoints": [
+      {
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors",
+        "name": "[StabilityAI]SDXL-1.0.safetensors"
+      }
+    ],
+    "models/vae": [
+      {
+        "url": "https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors",
+        "name": "[StabilityAI]sdxl-vae.safetensors"
+      }
+    ],
+    "models/loras": [],
+    "models/controlnet": [],
+    "models/upscale_models": []
+  },
+  "private_files": {
+    "models/checkpoints": [],
+    "models/vae": [],
+    "models/loras": []
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "install_path": "/root/comfy/ComfyUI",
+  "install_args": [],
+  "update_on_deploy": false,
+  "nodes": [],
+  "port": 8188,
+  "launch_args": []
+}

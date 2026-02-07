@@ -1,0 +1,14 @@
+{
+  "app_name": "comfyui-cluster",
+  "file_volume_name": "comfyui-files",
+  "output_volume_name": "comfyui-output",
+  "python_version": "3.12",
+  "rebuild_on_deploy": false,
+  "gpu_type": "T4",
+  "num_instances": 1,
+  "timeout": 3600,
+  "max_containers": 1,
+  "concurrent_inputs": 100,
+  "extra_packages": [],
+  "extra_requirements": []
+}
