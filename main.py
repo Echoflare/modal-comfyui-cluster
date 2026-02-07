@@ -148,9 +148,27 @@ def create_comfy_instance(index):
     
     return run_ui
 
-@app.local_entrypoint()
-def deploy():
-    print(f"启动ComfyUI: 将创建{app_cfg.get('num_instances', 1)}个GPU实例")
 
-for i in range(app_cfg.get("num_instances", 1)):
-    create_comfy_instance(i)
+num_instances = app_cfg.get('num_instances', 1)
+
+if num_instances == 1:
+    @app.function(
+        name="comfy-node",
+        max_containers=app_cfg.get("max_containers", 1),
+        gpu=app_cfg.get("gpu_type", "T4"),
+        volumes={data_path: vol_files, Path(comfyui_path)/"output": vol_outputs},
+        timeout=app_cfg.get("timeout", 3600),
+        image=image
+    )
+    @modal.concurrent(max_inputs=app_cfg.get("concurrent_inputs", 100))
+    @modal.web_server(comfyui_cfg.get("port", 8188), startup_timeout=300)
+    def run_ui():
+        run_comfyui(
+            comfyui_cfg.get("port", 8188),
+            comfyui_cfg.get("launch_args", [])
+        )
+elif num_instances <= 0:
+    print(f"实例数量设置错误: 不能创建{num_instances}个实例")
+else:
+    for i in range(num_instances):
+        create_comfy_instance(i)

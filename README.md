@@ -29,7 +29,7 @@
   "python_version": "3.12", // 集群镜像的Python环境版本
   "rebuild_on_deploy": false, // 是否在每次部署的时候都重新构建镜像
   "gpu_type": "T4", // GPU类型: T4、L4、A10、A100、... (查看 https://modal.com/docs/guide/gpu 的 Specifying GPU type 条目)
-  "num_instances": 1, // GPU实例数量 (控制ComfyUI实例数量)
+  "num_instances": 1, // GPU实例数量 (控制ComfyUI实例数量，注意: 数量大于1的实例数量需要序列化传输闭包函数，"python_version"必须与本地Python版本相同)
   "timeout": 3600, // 空闲超时时间
   "max_containers": 1, // 集群单个节点最大的容器数量 (控制GPU数量但不控制ComfyUI实例数量)
   "concurrent_inputs": 100, // 单个容器支持的最大并发输入
@@ -206,4 +206,4 @@ modal serve main.py
 modal deploy main.py
 ```
 
-部署成功后，终端会输出对应的 **Web URL** (例如 `https://your-username--comfyui-cluster-comfy-node-0.modal.run`)，访问该链接后，将会启动对应的ComfyUI实例。
+部署成功后，终端会输出对应的 **Web URL** (例如 `https://your-username--comfyui-cluster-comfy-node.modal.run`)，访问该链接后，将会启动对应的ComfyUI实例。
