@@ -9,6 +9,7 @@ class ConfigLoader:
         self.files_config = self._load("files.json")
         self.repos_config = self._load("repositories.json")
         self.tokens_config = self._load("tokens.json")
+        self.transfers_config = self._load("transfers.json")
     
     def _load(self, filename):
         with open(self.config_dir / filename, 'r', encoding='utf-8') as f:

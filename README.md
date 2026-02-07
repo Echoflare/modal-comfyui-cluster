@@ -177,6 +177,21 @@
 }
 ```
 
+### 6. `transfers.json` (文件传输)
+设置 `upload/` 文件夹中文件在云端上需要传输到的位置。
+```json5
+{
+  "upload内部文件路径1": "ComfyUI内部相对路径1",
+  "upload内部文件路径2": "ComfyUI内部相对路径2"
+}
+```
+示例:
+```json5
+{
+  "example.txt": "temp/example.txt"
+}
+```
+
 ## 部署与运行
 
 ### 本地开发/测试

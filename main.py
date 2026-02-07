@@ -1,6 +1,7 @@
 import modal
 import modal.experimental
 import subprocess
+import shutil
 from pathlib import Path
 from src.config_loader import ConfigLoader
 from src.utils import run_comfyui, link_file_to_comfyui
@@ -11,14 +12,17 @@ comfyui_cfg = config.comfyui_config
 files_cfg = config.files_config
 repos_cfg = config.repos_config
 tokens_cfg = config.tokens_config
+transfers_cfg = config.transfers_config
 
 comfyui_path = comfyui_cfg['install_path']
-data_path = "/comfy_data/"
+data_path = "/root/comfy_data/"
 
-def install_nodes(node_list):
+def install_nodes(node_list, comfyui_path):
     for node in node_list:
+        print(f"安装: {node}")
         cmd = [
             "comfy", "--skip-prompt",
+            "--workspace", comfyui_path,
             "node", "install",
             "--fast-deps", node
         ]
@@ -39,22 +43,40 @@ def run_download_private(files, path, token):
     downloader = FileDownloader(path, token)
     downloader.download_private_files(files)
 
+def run_upload_and_transfer(transfers_cfg, upload_path, target_base_path):
+    upload_root = Path(upload_path)
+    target_root = Path(target_base_path)
+    
+    for src_rel_path, dst_rel_path in transfers_cfg.items():
+        src_file = upload_root / src_rel_path
+        dst_file = target_root / dst_rel_path
+        if src_file.exists():
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src_file, dst_file)
+            print(f"已复制: {src_rel_path} -> {dst_file}")
+        else:
+            print(f"警告: 源文件未找到 {src_file}")
+
 image = (
     modal.Image.debian_slim(python_version=app_cfg["python_version"], force_build=app_cfg["rebuild_on_deploy"])
     .apt_install("git", "wget", "aria2", *app_cfg["extra_packages"])
     .uv_pip_install("huggingface_hub", "fastapi[standard]", *app_cfg["extra_requirements"])
     .uv_pip_install("comfy-cli")
-    .add_local_dir("src", remote_path="/root/src", copy=True)
-    .add_local_dir("config", remote_path="/root/config", copy=True)
     .run_commands(f"comfy --workspace={comfyui_path} --skip-prompt install --fast-deps --nvidia {' '.join(comfyui_cfg['install_args'])}")
+    
 )
 vol_files = modal.Volume.from_name(app_cfg["file_volume_name"], create_if_missing=True)
 vol_outputs = modal.Volume.from_name(app_cfg["output_volume_name"], create_if_missing=True)
 
 image = (
+    image.add_local_python_source("src", copy=True)
+    .add_local_dir("config", remote_path="/root/config", copy=True)
+)
+
+image = (
     image.run_function(
         install_nodes,
-        args=(comfyui_cfg['nodes'], )
+        args=(comfyui_cfg['nodes'], comfyui_path)
     )
     .run_function(
         run_clone_repos,
@@ -76,6 +98,15 @@ image = (
         volumes={data_path: vol_files}
     )
 )
+
+if Path("upload").exists():
+    image = (
+        image.add_local_dir("upload", remote_path="/root/upload", copy=True)
+        .run_function(
+            run_upload_and_transfer,
+            args=(transfers_cfg, "/root/upload", comfyui_path),
+        )
+    )
 
 image = image.run_commands(f"rm -rf {Path(comfyui_path)/'output'}")
 
