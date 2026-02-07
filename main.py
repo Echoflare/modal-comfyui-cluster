@@ -14,7 +14,7 @@ repos_cfg = config.repos_config
 tokens_cfg = config.tokens_config
 transfers_cfg = config.transfers_config
 
-comfyui_path = comfyui_cfg['install_path']
+comfyui_path = comfyui_cfg.get('install_path', "/root/comfy/ComfyUI")
 data_path = "/root/comfy_data/"
 
 def install_nodes(node_list, comfyui_path):
@@ -33,9 +33,9 @@ def run_clone_repos(repos, path):
     cloner = RepoCloner(path)
     cloner.clone_repositories(repos)
 
-def run_download_public(files, path, token):
+def run_download_public(files, path):
     from src.downloader import FileDownloader
-    downloader = FileDownloader(path, token)
+    downloader = FileDownloader(path)
     downloader.download_public_files(files)
 
 def run_download_private(files, path, token):
@@ -58,38 +58,48 @@ def run_upload_and_transfer(transfers_cfg, upload_path, target_base_path):
             print(f"警告: 源文件未找到 {src_file}")
 
 image = (
-    modal.Image.debian_slim(python_version=app_cfg["python_version"], force_build=app_cfg["rebuild_on_deploy"])
-    .apt_install("git", "wget", "aria2", *app_cfg["extra_packages"])
-    .uv_pip_install("huggingface_hub", "fastapi[standard]", *app_cfg["extra_requirements"])
+    modal.Image.debian_slim(python_version=app_cfg.get("python_version", "3.12"), force_build=app_cfg.get("rebuild_on_deploy", False))
+    .apt_install("git", "wget", "aria2", *app_cfg.get("extra_packages", []))
+    .uv_pip_install("huggingface_hub", "fastapi[standard]", *app_cfg.get("extra_requirements", []))
     .uv_pip_install("comfy-cli")
-    .run_commands(f"comfy --workspace={comfyui_path} --skip-prompt install --fast-deps --nvidia {' '.join(comfyui_cfg['install_args'])}")
+    .run_commands(f"comfy --workspace={comfyui_path} --skip-prompt install --fast-deps --nvidia {' '.join(comfyui_cfg.get('install_args', []))}")
     
 )
-vol_files = modal.Volume.from_name(app_cfg["file_volume_name"], create_if_missing=True)
-vol_outputs = modal.Volume.from_name(app_cfg["output_volume_name"], create_if_missing=True)
+vol_files = modal.Volume.from_name(app_cfg.get("file_volume_name", "comfyui-files"), create_if_missing=True)
+vol_outputs = modal.Volume.from_name(app_cfg.get("output_volume_name", "comfyui-output"), create_if_missing=True)
 
 image = (
     image.add_local_python_source("src", copy=True)
-    .add_local_dir("config", remote_path="/root/config", copy=True)
+    .add_local_file("config/app.json", remote_path="/root/config/app.json", copy=True)
 )
 
 image = (
-    image.run_function(
+    image.add_local_file("config/comfyui.json", remote_path="/root/config/comfyui.json", copy=True)
+    .run_function(
         install_nodes,
-        args=(comfyui_cfg['nodes'], comfyui_path)
+        args=(comfyui_cfg.get('nodes', []), comfyui_path)
     )
+)
+
+image = (
+    image.add_local_file("config/repositories.json", remote_path="/root/config/repositories.json", copy=True)
     .run_function(
         run_clone_repos,
         args=(repos_cfg, comfyui_path)
     )
+)
+
+image = (
+    image.add_local_file("config/files.json", remote_path="/root/config/files.json", copy=True)
+    .add_local_file("config/tokens.json", remote_path="/root/config/tokens.json", copy=True)
     .run_function(
         run_download_public,
-        args=(files_cfg["public_files"], data_path, tokens_cfg.get("huggingface_token")),
+        args=(files_cfg.get("public_files", {}), data_path),
         volumes={data_path: vol_files}
     )
     .run_function(
         run_download_private,
-        args=(files_cfg["private_files"], data_path, tokens_cfg.get("huggingface_token")),
+        args=(files_cfg.get("private_files", {}), data_path, tokens_cfg.get("huggingface_token")),
         volumes={data_path: vol_files}
     )
     .run_function(
@@ -100,6 +110,7 @@ image = (
 )
 
 if Path("upload").exists():
+    image = image.add_local_file("config/transfers.json", remote_path="/root/config/transfers.json", copy=True)
     image = (
         image.add_local_dir("upload", remote_path="/root/upload", copy=True)
         .run_function(
@@ -110,36 +121,36 @@ if Path("upload").exists():
 
 image = image.run_commands(f"rm -rf {Path(comfyui_path)/'output'}")
 
-if comfyui_cfg["update_on_deploy"]:
+if comfyui_cfg.get("update_on_deploy", False):
     image = image.run_commands("comfy update comfy && comfy node update all || true", force_build=True)
 
-app = modal.App(app_cfg["app_name"], image=image)
+app = modal.App(app_cfg.get("app_name", "comfyui-cluster"), image=image)
 
 def create_comfy_instance(index):
     func_name = f"comfy-node-{index}"
     
     @app.function(
         name=func_name,
-        max_containers=app_cfg["max_containers"],
-        gpu=app_cfg["gpu_type"],
+        max_containers=app_cfg.get("max_containers", 1),
+        gpu=app_cfg.get("gpu_type", "T4"),
         volumes={data_path: vol_files, Path(comfyui_path)/"output": vol_outputs},
-        timeout=app_cfg["timeout"],
+        timeout=app_cfg.get("timeout", 3600),
         image=image,
         serialized=True
     )
-    @modal.concurrent(max_inputs=app_cfg["concurrent_inputs"])
-    @modal.web_server(comfyui_cfg["port"], startup_timeout=300)
+    @modal.concurrent(max_inputs=app_cfg.get("concurrent_inputs", 100))
+    @modal.web_server(comfyui_cfg.get("port", 8188), startup_timeout=300)
     def run_ui():
         run_comfyui(
-            comfyui_cfg["port"],
-            comfyui_cfg["launch_args"]
+            comfyui_cfg.get("port", 8188),
+            comfyui_cfg.get("launch_args", [])
         )
     
     return run_ui
 
 @app.local_entrypoint()
 def deploy():
-    print(f"启动ComfyUI: 将创建{app_cfg['num_instances']}个GPU实例")
+    print(f"启动ComfyUI: 将创建{app_cfg.get('num_instances', 1)}个GPU实例")
 
-for i in range(app_cfg["num_instances"]):
+for i in range(app_cfg.get("num_instances", 1)):
     create_comfy_instance(i)
