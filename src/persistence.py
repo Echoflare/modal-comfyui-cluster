@@ -15,6 +15,24 @@ def calculate_checksum(file_path):
     except FileNotFoundError:
         return None
 
+def calculate_dir_checksum(dir_path):
+    hash_md5 = hashlib.md5()
+    dir_path = Path(dir_path)
+    if not dir_path.exists() or not dir_path.is_dir():
+        return None
+    
+    for root, dirs, files in os.walk(dir_path):
+        dirs.sort()
+        files.sort()
+        for file in files:
+            file_path = Path(root) / file
+            hash_md5.update(str(file_path.relative_to(dir_path)).encode())
+            file_hash = calculate_checksum(file_path)
+            if file_hash:
+                hash_md5.update(file_hash.encode())
+    
+    return hash_md5.hexdigest()
+
 def restore_files(file_list, persistence_root, comfyui_root, node_name):
     persist_dir = Path(persistence_root) / node_name
     comfy_dir = Path(comfyui_root)
@@ -27,8 +45,13 @@ def restore_files(file_list, persistence_root, comfyui_root, node_name):
         
         if src.exists():
             if dst.exists():
-                src_hash = calculate_checksum(src)
-                dst_hash = calculate_checksum(dst)
+                if src.is_dir():
+                    src_hash = calculate_dir_checksum(src)
+                    dst_hash = calculate_dir_checksum(dst)
+                else:
+                    src_hash = calculate_checksum(src)
+                    dst_hash = calculate_checksum(dst)
+                
                 if src_hash == dst_hash:
                     continue
             
@@ -54,7 +77,15 @@ def start_persistence_sync(file_list, persistence_root, comfyui_root, node_name,
                 
                 if src.exists():
                     if src.is_dir():
-                        shutil.copytree(src, dst, dirs_exist_ok=True)
+                        src_hash = calculate_dir_checksum(src)
+                        dst_hash = calculate_dir_checksum(dst)
+                        
+                        if src_hash == dst_hash:
+                            continue
+                        else:
+                            if dst.exists():
+                                shutil.rmtree(dst)
+                            shutil.copytree(src, dst, dirs_exist_ok=True)
                     else:
                         src_hash = calculate_checksum(src)
                         dst_hash = calculate_checksum(dst)
