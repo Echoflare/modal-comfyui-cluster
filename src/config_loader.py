@@ -8,6 +8,7 @@ class ConfigLoader:
         self._app_config = None
         self._comfyui_config = None
         self._files_config = None
+        self._persistence_config = None
         self._repos_config = None
         self._tokens_config = None
         self._transfers_config = None
@@ -44,6 +45,12 @@ class ConfigLoader:
             self._files_config = self._load("files.json")
         return self._files_config
 
+    @property
+    def persistence_config(self):
+        if self._persistence_config is None:
+            self._persistence_config = self._load("persistence.json")
+        return self._persistence_config
+    
     @property
     def repos_config(self):
         if self._repos_config is None:

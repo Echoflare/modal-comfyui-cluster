@@ -1,7 +1,9 @@
 {
   "app_name": "comfyui-cluster",
+  "node_name": "comfyui-node",
   "file_volume_name": "comfyui-files",
   "output_volume_name": "comfyui-output",
+  "persistence_volume_name": "comfyui-persistence",
   "python_version": "3.12",
   "rebuild_on_deploy": false,
   "gpu_type": "T4",

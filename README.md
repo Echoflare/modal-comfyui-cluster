@@ -24,9 +24,11 @@
 ```json5
 {
   "app_name": "comfyui-cluster", // ComfyUI集群应用命名
+  "node_name": "comfyui-node", // ComfyUI集群节点命名
   "file_volume_name": "comfyui-files", // 大文件存放媒介命名 (例如: 模型)
   "output_volume_name": "comfyui-output", // 输出文件存放媒介命名 (例如: 图片)
-  "python_version": "3.12", // 集群镜像的Python环境版本
+  "persistence_volume_name": "comfyui-persistence", // 持久化媒介命名
+  "python_version": "3.12", // 集群镜像的Python环境版本 (设为"auto"可自动对齐本地Python版本)
   "rebuild_on_deploy": false, // 是否在每次部署的时候都重新构建镜像
   "gpu_type": "T4", // GPU类型: T4、L4、A10、A100、... (查看 https://modal.com/docs/guide/gpu 的 Specifying GPU type 条目)
   "num_instances": 1, // GPU实例数量 (控制ComfyUI实例数量，注意: 数量大于1的实例数量需要序列化传输闭包函数，"python_version"必须与本地Python版本相同)
@@ -149,7 +151,23 @@
 }
 ```
 
-### 4. `repositories.json` (仓库克隆)
+### 4. `persistence.json` (文件持久化)
+用于持久化需要保存的文件或文件夹。
+```json5
+[
+  "ComfyUI内部需要持久化的文件/文件夹1",
+  "ComfyUI内部需要持久化的文件/文件夹2"
+]
+```
+示例:
+```json5
+[
+    "user/comfyui.db",
+    "user/default"
+]
+```
+
+### 5. `repositories.json` (仓库克隆)
 用于克隆Git仓库。
 ```json5
 {
@@ -169,7 +187,7 @@
 }
 ```
 
-### 5. `tokens.json` (敏感信息)
+### 6. `tokens.json` (敏感信息)
 配置您的 HuggingFace Token，用于下载私有模型 (如果有下载私有模型的需求)。
 ```json5
 {
@@ -177,7 +195,7 @@
 }
 ```
 
-### 6. `transfers.json` (文件传输)
+### 7. `transfers.json` (文件传输)
 设置 `upload/` 文件夹中文件在云端上需要传输到的位置。
 ```json5
 {
