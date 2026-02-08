@@ -1,5 +1,7 @@
 # Modal: ComfyUI Cluster
 
+[中文](./README.md) | [English](./README_EN.md)
+
 这是一个在[Modal](https://modal.com)平台上运行[ComfyUI](https://github.com/comfyanonymous/ComfyUI)集群的项目。
 
 ## 前置要求
