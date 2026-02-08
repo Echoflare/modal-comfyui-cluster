@@ -224,4 +224,4 @@ modal serve main.py
 modal deploy main.py
 ```
 
-部署成功后，终端会输出对应的 **Web URL** (例如 `https://your-username--comfyui-cluster-comfy-node.modal.run`)，访问该链接后，将会启动对应的ComfyUI实例。
+部署成功后，终端会输出对应的 **Web URL** (例如 `https://your-username--comfyui-cluster-comfyui-node.modal.run`)，访问该链接后，将会启动对应的ComfyUI实例。
