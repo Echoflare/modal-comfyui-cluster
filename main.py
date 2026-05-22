@@ -177,6 +177,7 @@ if num_instances == 1:
         gpu=app_cfg.get("gpu_type", "T4"),
         volumes=volume_mounts,
         timeout=app_cfg.get("timeout", 3600),
+        scaledown_window=app_cfg.get("scaledown_window", 3600),
         image=image
     )
     @modal.concurrent(max_inputs=app_cfg.get("concurrent_inputs", 100))

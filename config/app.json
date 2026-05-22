@@ -9,6 +9,7 @@
   "gpu_type": "T4",
   "num_instances": 1,
   "timeout": 3600,
+  "scaledown_window": 3600,
   "max_containers": 1,
   "concurrent_inputs": 100,
   "extra_packages": [],

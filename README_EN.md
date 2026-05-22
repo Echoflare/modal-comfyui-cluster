@@ -35,6 +35,7 @@ Controls the container environment (GPU type, concurrency, timeout, etc.).
   "gpu_type": "T4", // GPU type: T4, L4, A10, A100, ... (See https://modal.com/docs/guide/gpu under Specifying GPU type)
   "num_instances": 1, // Number of GPU instances (Controls ComfyUI instance count. Note: If >1, closure functions must be serialized, and "python_version" must match local version)
   "timeout": 3600, // Task timeout (Container will be shut down if running exceeds the specified time)
+  "scaledown_window": 3600, // Idle timeout (Container will be shut down if idle exceeds the specified time)
   "max_containers": 1, // Max containers per cluster node (Controls GPU count but not ComfyUI instance count)
   "concurrent_inputs": 100, // Max concurrent inputs per container
   "extra_packages": [], // Extra Debian packages to install
