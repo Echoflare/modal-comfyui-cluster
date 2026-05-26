@@ -110,11 +110,6 @@ image = (
         args=(files_cfg.get("private_files", {}), data_path, tokens_cfg.get("huggingface_token")),
         volumes={data_path: vol_files}
     )
-    .run_function(
-        link_file_to_comfyui,
-        args=(data_path, comfyui_path),
-        volumes={data_path: vol_files}
-    )
 )
 
 if Path("upload").exists():
@@ -144,6 +139,17 @@ volume_mounts = {
 
 node_name = app_cfg.get("node_name", "comfyui-node")
 
+def start_comfyui_core(instance_name):
+    restore_files(persistence_cfg, persistence_path, comfyui_path, instance_name)
+    start_persistence_sync(persistence_cfg, persistence_path, comfyui_path, instance_name)
+    
+    link_file_to_comfyui(data_path, comfyui_path)
+    
+    run_comfyui(
+        comfyui_cfg.get("port", 8188),
+        comfyui_cfg.get("launch_args", [])
+    )
+
 def create_comfy_instance(index):
     node_name_unique = f"{node_name}-{index}"
     
@@ -159,12 +165,7 @@ def create_comfy_instance(index):
     @modal.concurrent(max_inputs=app_cfg.get("concurrent_inputs", 100))
     @modal.web_server(comfyui_cfg.get("port", 8188), startup_timeout=300)
     def run_ui():
-        restore_files(persistence_cfg, persistence_path, comfyui_path, node_name_unique)
-        start_persistence_sync(persistence_cfg, persistence_path, comfyui_path, node_name_unique)
-        run_comfyui(
-            comfyui_cfg.get("port", 8188),
-            comfyui_cfg.get("launch_args", [])
-        )
+        start_comfyui_core(node_name_unique)
     
     return run_ui
 
@@ -183,12 +184,7 @@ if num_instances == 1:
     @modal.concurrent(max_inputs=app_cfg.get("concurrent_inputs", 100))
     @modal.web_server(comfyui_cfg.get("port", 8188), startup_timeout=300)
     def run_ui():
-        restore_files(persistence_cfg, persistence_path, comfyui_path, node_name)
-        start_persistence_sync(persistence_cfg, persistence_path, comfyui_path, node_name)
-        run_comfyui(
-            comfyui_cfg.get("port", 8188),
-            comfyui_cfg.get("launch_args", [])
-        )
+        start_comfyui_core(node_name)
 elif num_instances <= 0:
     print(f"实例数量设置错误: 不能创建{num_instances}个实例")
 else:
