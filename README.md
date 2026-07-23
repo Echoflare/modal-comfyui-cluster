@@ -64,11 +64,11 @@
     "ComfyUI内部相对路径1": [
       {
         "url": "文件地址1",
-        "name": "[StabilityAI]SDXL-1.0.safetensors"
+        "name": "文件名1"
       },
       {
         "url": "文件地址2",
-        "name": "文件名" // 本键可选择性设置
+        "name": "文件名2" // 本键可选择性设置
       }
     ],
     "ComfyUI内部相对路径2": []

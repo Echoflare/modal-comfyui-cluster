@@ -64,11 +64,11 @@ Used for downloading files, categorized into public and private downloads (Huggi
     "ComfyUI_internal_relative_path_1": [
       {
         "url": "File_URL_1",
-        "name": "[StabilityAI]SDXL-1.0.safetensors"
+        "name": "Filename_1"
       },
       {
         "url": "File_URL_2",
-        "name": "Filename" // This key is optional
+        "name": "Filename_2" // This key is optional
       }
     ],
     "ComfyUI_internal_relative_path_2": []
