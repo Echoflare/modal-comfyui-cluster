@@ -3,6 +3,7 @@ import modal.experimental
 import subprocess
 import shutil
 import sys
+import posixpath
 from pathlib import Path
 from src.config_loader import ConfigLoader
 from src.utils import run_comfyui, link_file_to_comfyui
@@ -122,7 +123,7 @@ if Path("upload").exists():
         )
     )
 
-image = image.run_commands(f"rm -rf {Path(comfyui_path)/'output'}")
+image = image.run_commands(f"rm -rf {posixpath.join(comfyui_path, 'output')}")
 
 if comfyui_cfg.get("update_on_deploy", False):
     image = image.run_commands("comfy update comfy && comfy node update all || true", force_build=True)
@@ -133,7 +134,7 @@ app = modal.App(app_cfg.get("app_name", "comfyui-cluster"), image=image)
 
 volume_mounts = {
     data_path: vol_files, 
-    Path(comfyui_path)/"output": vol_outputs,
+    posixpath.join(comfyui_path, 'output'): vol_outputs,
     persistence_path: vol_persistence
 }
 
